@@ -11,12 +11,17 @@ jobs:
       - uses: arduino/setup-arduino-cli@v2
       - name: Compile
         run: |
+          INO=$(find . -name '*.ino' -not -path './sketch/*' | head -n1)
+          echo "Sketch ditemukan: $INO"
+          test -n "$INO" || { echo "Tidak ada file .ino di repo"; exit 1; }
+          mkdir -p sketch
+          cp "$INO" sketch/sketch.ino
           arduino-cli config init
           arduino-cli config add board_manager.additional_urls https://arduino.esp8266.com/stable/package_esp8266com_index.json
           arduino-cli core update-index
           arduino-cli core install esp8266:esp8266
-          arduino-cli compile --fqbn esp8266:esp8266:d1_mini --output-dir build relay_web
+          arduino-cli compile --fqbn esp8266:esp8266:d1_mini --output-dir build sketch
       - uses: actions/upload-artifact@v4
         with:
           name: firmware
-          path: build/Apapun.ino.bin
+          path: build/sketch.ino.bin
